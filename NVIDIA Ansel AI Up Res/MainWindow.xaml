@@ -1,0 +1,61 @@
+﻿<Window Name="mainWindow" x:Class="NVIDIA_Ansel_AI_Up_Res.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NVIDIA_Ansel_AI_Up_Res"
+        mc:Ignorable="d"
+        Title="NVIDIA Ansel AI Enhancer" Height="221" Width="388" ResizeMode="CanMinimize" Background="WhiteSmoke" Foreground="Black">
+    <Grid Name="mainGrid" Loaded="MainGrid_Loaded" Margin="0,0,-22,1" HorizontalAlignment="Left" Width="404">
+        <Grid Margin="12,12,12,0" Height="228" VerticalAlignment="Top">
+            <Grid HorizontalAlignment="Left" Width="100" Height="100" VerticalAlignment="Top">
+                <Grid Width="100" Height="100">
+                    <Border BorderThickness="1" BorderBrush="Black" CornerRadius="4"/>
+                    <Border Name="imageB" BorderThickness="1" BorderBrush="Black" Height="0" Width="0" HorizontalAlignment="Left" VerticalAlignment="Top" CornerRadius="4">
+                        <Image Name="image" Stretch="Fill"/>
+                    </Border>
+                    <Border Name="image1B" BorderThickness="1" BorderBrush="Black" Height="0" Width="0" HorizontalAlignment="Right" VerticalAlignment="Top" CornerRadius="4">
+                        <Image Name="image1" Stretch="Fill"/>
+                    </Border>
+                    <Border Name="image2B" BorderThickness="1" BorderBrush="Black" Height="0" Width="0" HorizontalAlignment="Left" VerticalAlignment="Bottom" CornerRadius="4">
+                        <Image Name="image2" Stretch="Fill"/>
+                    </Border>
+                    <Border Name="image3B" BorderThickness="1" BorderBrush="Black" Height="0" Width="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" CornerRadius="4">
+                        <Grid Name="image3G">
+                            <Image Name="image3" Stretch="Fill"/>
+                            <Label Name="image3L" Content="" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="15.5" FontWeight="Bold" Visibility="Hidden"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+                <Button Name="browseImagesButton" Click="BrowseImagesButton_Click" Content="Browse" HorizontalAlignment="Center" Margin="0,0,0,0" VerticalAlignment="Top" Width="100" Background="Transparent" BorderBrush="Transparent" ToolTip="Browse for images on your computer to upscale them." Height="80"/>
+                <Button Name="clearImagesButton" Click="ClearImagesButton_Click" Content="Clear" HorizontalAlignment="Center" Margin="0,0,0,0" VerticalAlignment="Bottom" Width="100" Background="Transparent" BorderBrush="Transparent" ToolTip="Remove all of the selected images." Height="20"/>
+
+            </Grid>
+            <Grid Margin="178,0,-3,128" HorizontalAlignment="Left" Width="166">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="96*"/>
+                    <ColumnDefinition Width="64*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="25*"/>
+                    <RowDefinition Height="25*"/>
+                    <RowDefinition Height="25*"/>
+                    <RowDefinition Height="25*"/>
+                </Grid.RowDefinitions>
+                <Label Name="resolutionScaleLabel" Grid.Column="0" Grid.Row="0" Content="Resolution Scale"/>
+                <ComboBox Name="resolutionScaleComboBox" Grid.Column="1" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Center" Width="36" SelectedIndex="0" Height="22" Margin="0,2,0,1" ToolTip="2: Doubles the resolution of the image (1920x1080 -> 3840x2160)&#x0a;4: Quadruples the resolution of the image (1920x1080 -> 7680×4320)">
+                    <ComboBoxItem Content="2"/>
+                    <ComboBoxItem Content="4"/>
+                </ComboBox>
+                <Label Name="colourModeLabel" Grid.Column="0" Grid.Row="1" Content="Colour Mode"/>
+                <ComboBox Name="colourModeComboBox" Grid.Row="1" HorizontalAlignment="Right" VerticalAlignment="Center" Width="80" SelectedIndex="0" Height="22" Margin="0,1,0,2" ToolTip="Colour: Up-resses the image with full colour (requires RTX)&#x0a;Greyscale: Up-resses the image in greyscale (faster)" Grid.ColumnSpan="2"/>
+                <Button Name="startButton" Content="Enhance" Grid.Row="2" Grid.ColumnSpan="2" Margin="0,4,0,-23" Click="StartButton_Click" ToolTip="Press me to start up-ressing your images."/>
+            </Grid>
+            <Label Name="graphicsAdapterLabel" Margin="-5,108,45,0" Style="{StaticResource LStyle}"/>
+            <CheckBox Name="forceModeCheckBox" Click="ForceModeCheckBox_Click"  Content="Force Mode" HorizontalAlignment="Left" Margin="261,138,0,0" Height="21" VerticalAlignment="Top" UseLayoutRounding="False" ToolTip="Enable if you believe your system does have the correct display adapter but the app is not recognising it.&#x0a;(May lead to crashes if your display adapter is unsupported)" Visibility="Hidden" Background="WhiteSmoke"/>
+            <CheckBox x:Name="darkModeCheckBox" Click="DarkModeCheckBox_Click" Content="Dark Mode" HorizontalAlignment="Left" Margin="0,138,0,0" Height="21" VerticalAlignment="Top" UseLayoutRounding="False" Background="WhiteSmoke"/>
+            <CheckBox Name="outputFolderModeCheckBox" Click="OutputFolderModeCheckBox_Click"  Content="Output Folder" HorizontalAlignment="Left" Margin="93,138,0,0" Height="21" VerticalAlignment="Top" UseLayoutRounding="False" ToolTip="Saves all of the processed images into their own folder (very useful if you're up-ressing several images)" Background="WhiteSmoke"/>
+            <ComboBox Name="threadsComboBox" SelectionChanged="ThreadsComboBox_SelectionChanged" Width="44" Height="22" Margin="203,135,133,71" ToolTip="The number of threads the app is allowed to use to process images.&#x0a;(The more threads, the more images you can process at once.&#x0a;Uses more RAM, if you do not have enough, errors will occur)"/>
+        </Grid>
+    </Grid>
+</Window>

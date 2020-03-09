@@ -1,0 +1,20 @@
+﻿<Application x:Class="NVIDIA_Ansel_AI_Up_Res.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:NVIDIA_Ansel_AI_Up_Res"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <SolidColorBrush Color="Blue" x:Key="txtColour" />
+
+        <Style x:Key="TBStyle" TargetType="TextBox">
+        </Style>
+        <Style x:Key="LStyle" TargetType="Label">
+        </Style>
+        <Style x:Key="COBStyle" TargetType="ComboBox">
+        </Style>
+        <Style x:Key="BStyle" TargetType="Button">
+        </Style>
+        <Style x:Key="CBStyle" TargetType="CheckBox">
+        </Style>
+    </Application.Resources>
+</Application>
