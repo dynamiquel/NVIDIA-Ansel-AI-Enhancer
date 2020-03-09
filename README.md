@@ -18,4 +18,4 @@ NVIDIA Ansel AI Enhancer is an app I quickly made that takes advantage of NVIDIA
 Open the **sln** file with Visual Studio 2019. Build > Build Solution.
 
 ## Download
-You can download a pre-built executable <a href="https://mega.nz/#F!M8MCHYBT!ZlA9MCkxkN_AyNiP5aiN5Q">here</a>.
+You can download a pre-built executable <a href="https://github.com/dynamiquel/NVIDIA-Ansel-AI-Enhancer/releases">here</a>.
