@@ -1,5 +1,10 @@
 # NVIDIA-Ansel-AI-Enhancer
+<img src="https://i.postimg.cc/xTFLzVpM/Ansel-AI-Res-Up-Show.png"/>
 NVIDIA Ansel AI Enhancer is an app I quickly made that takes advantage of NVIDIA’s Ansel RTX AI Up-Res to allow users to upscale any image to 8K whiles adding further quality.
+
+# Comparisons
+<img src="https://i.postimg.cc/C5yFkC6p/Firefox-NBc.png"/>
+<img src="https://i.postimg.cc/yYvMzXX6/Rhaenyr-BC.png"/>
 
 ## Prerequisites
 <ul>
