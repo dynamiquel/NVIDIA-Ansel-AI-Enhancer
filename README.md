@@ -7,20 +7,18 @@ NVIDIA Ansel AI Enhancer is an app I quickly made that takes advantage of NVIDIA
 <img src="https://i.postimg.cc/yYvMzXX6/Rhaenyr-BC.png"/>
 
 ## Prerequisites
-<ul>
-  <li>.NET Framework 4.7.2</li>
-  <li>NVIDIA GeForce Experience</li>
-  <li>NVIDIA display adapter (for greyscale support)</li>
-  <li>NVIDIA Turing (16/20 series) or newer display adapter (for colour support)</li>
-</ul>
+- [.NET Framework 4.7.2](https://dotnet.microsoft.com/download/dotnet-framework/thank-you/net472-web-installer) (should already be installed if you have Windows 10)</li>
+- [NVIDIA GeForce Experience](https://www.nvidia.com/en-gb/geforce/geforce-experience/)</li>
+- NVIDIA display adapter (for greyscale support)</li>
+- NVIDIA Turing (16/20 series) or newer display adapter (for colour support)</li>
 
-## Building
+## Download
+Click [**here**](https://github.com/dynamiquel/NVIDIA-Ansel-AI-Enhancer/releases/download/v1.1/NVIDIA.Ansel.AI.Enhancer.exe) to download the latest version of the app.
+
+## Building (for developers)
 ### Prerequisites
 <ul>
   <li>Visual Studio 2019 for Windows 10</li>
 </ul>
 
 Open the **sln** file with Visual Studio 2019. Build > Build Solution.
-
-## Download
-You can download a pre-built executable <a href="https://github.com/dynamiquel/NVIDIA-Ansel-AI-Enhancer/releases">here</a>.
