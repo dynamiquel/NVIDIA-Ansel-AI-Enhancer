@@ -26,7 +26,7 @@ namespace NVIDIA_Ansel_AI_Up_Res
         int tasksCompleted = 0;
         int failedImages = 0;
         bool firstTime;
-        List<string> imagePaths = new List<string>();
+        readonly List<string> imagePaths = new List<string>();
 
         public MainWindow()
         {
@@ -40,7 +40,7 @@ namespace NVIDIA_Ansel_AI_Up_Res
 
             if (firstTime)
             {
-                int i = (int)MessageBox.Show("NVIDIA Display Adapter is required ;)\n\n\nTL;DR\nDo not up-res images that will result in a resolution of over 9000x9000.\n\nWhen up-ressing an image that will result in a resolution of over 9000x9000, the image is likely to provide an error during processing due to memory limitations with NVIDIA's API.", "Important Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                var i = (int)MessageBox.Show("NVIDIA Display Adapter is required ;)\n\n\nTL;DR\nDo not up-res images that will result in a resolution of over 9000x9000.\n\nWhen up-ressing an image that will result in a resolution of over 9000x9000, the image is likely to provide an error during processing due to memory limitations with NVIDIA's API.", "Important Info", MessageBoxButton.OK, MessageBoxImage.Information);
                 firstTime = false;
 
                 if (Properties.Settings.Default == null)
@@ -56,7 +56,6 @@ namespace NVIDIA_Ansel_AI_Up_Res
             if (Properties.Settings.Default == null)
                 return;
 
-            ChangeColourScheme(Properties.Settings.Default.DarkMode);
             outputFolderMode = Properties.Settings.Default.OutputFolderMode;
             outputFolderModeCheckBox.IsChecked = Properties.Settings.Default.OutputFolderMode;
             threadCount = Properties.Settings.Default.ThreadCount;
@@ -67,7 +66,7 @@ namespace NVIDIA_Ansel_AI_Up_Res
         {
             int threads = Environment.ProcessorCount;
 
-            for (int i = 1; i < threads + 1; i++)
+            for (var i = 1; i < threads + 1; i++)
                 threadsComboBox.Items.Add(i);
 
             if (threadCount > Environment.ProcessorCount)
@@ -77,7 +76,7 @@ namespace NVIDIA_Ansel_AI_Up_Res
         }
 
 
-        // App start
+        // UI start
         private void MainGrid_Loaded(object sender, RoutedEventArgs e)
         {
             DetectSystem();
@@ -90,6 +89,9 @@ namespace NVIDIA_Ansel_AI_Up_Res
 
             supportLevel = graphicsAdapter.SupportLevel;
 
+            if (graphicsAdapter.SupportLevel != SupportLevel.Full)
+                forceModeCheckBox.Visibility = Visibility.Visible;
+
             // Has graphics adapter but not app (probably driver update needed).
             if (graphicsAdapter.SupportLevel != SupportLevel.None && !DetectApp())
                 MessageBox.Show("I was unable to locate 'C:/Program Files/NVIDIA Corporation/NVIDIA NvDLISR/nvdlisrwrapper.exe'. Without this app, I cannot do what I am supposed to do.\n\nIt is very likely that your Display Adapter Driver needs updating.", "Prerequisites Missing", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -99,7 +101,6 @@ namespace NVIDIA_Ansel_AI_Up_Res
             // Has the app but not the graphics adapter (probably used to have NVIDIA but not anymore; could also be the app not recognising the graphics adapter properly).
             else if (graphicsAdapter.SupportLevel == SupportLevel.None && DetectApp())
                 MessageBox.Show("An NVIDIA GeForce GTX or RTX display adapter is required and neither could not be found.\n\nIf you feel like this is a mistake, enable 'Force Mode'.", "Prerequisites Missing", MessageBoxButton.OK, MessageBoxImage.Error);
-                forceModeCheckBox.Visibility = Visibility.Visible;
 
             UpdateOptions();
 
@@ -155,62 +156,13 @@ namespace NVIDIA_Ansel_AI_Up_Res
             SetupThreadComboBox();
         }
 
-        void ChangeColourScheme(bool darkMode)
-        {
-            if (darkMode)
-            {
-                Properties.Settings.Default.DarkMode = true;
-                darkModeCheckBox.IsChecked = true;
-                mainWindow.Background = new SolidColorBrush(Color.FromRgb(27, 27, 27));
-                startButton.Background = new SolidColorBrush(Color.FromRgb(31, 31, 31));
-                colourModeComboBox.Background = new SolidColorBrush(Color.FromRgb(31, 31, 31));
-                resolutionScaleComboBox.Background = new SolidColorBrush(Color.FromRgb(31, 31, 31));
-                startButton.Foreground = new SolidColorBrush(Color.FromRgb(221, 221, 221));
-                colourModeLabel.Foreground = new SolidColorBrush(Color.FromRgb(221, 221, 221));
-                resolutionScaleLabel.Foreground = new SolidColorBrush(Color.FromRgb(221, 221, 221));
-                graphicsAdapterLabel.Foreground = new SolidColorBrush(Color.FromRgb(221, 221, 221));
-                browseImagesButton.Foreground = new SolidColorBrush(Color.FromRgb(221, 221, 221));
-                clearImagesButton.Foreground = new SolidColorBrush(Color.FromRgb(221, 221, 221));
-                darkModeCheckBox.Foreground = new SolidColorBrush(Color.FromRgb(221, 221, 221));
-                forceModeCheckBox.Foreground = new SolidColorBrush(Color.FromRgb(221, 221, 221));
-                outputFolderModeCheckBox.Foreground = new SolidColorBrush(Color.FromRgb(221, 221, 221));
-                image3L.Foreground = new SolidColorBrush(Color.FromRgb(221, 221, 221));
-            }
-            else
-            {
-                Properties.Settings.Default.DarkMode = false;
-                darkModeCheckBox.IsChecked = false;
-                mainWindow.Background = new SolidColorBrush(Color.FromRgb(245, 245, 245));
-                startButton.Background = new SolidColorBrush(Color.FromRgb(221, 221, 221));
-                colourModeComboBox.Background = new SolidColorBrush(Color.FromRgb(229, 229, 229));
-                resolutionScaleComboBox.Background = new SolidColorBrush(Color.FromRgb(229, 229, 229));
-                startButton.Foreground = new SolidColorBrush(Color.FromRgb(0, 0, 0));
-                colourModeComboBox.Foreground = new SolidColorBrush(Color.FromRgb(0, 0, 0));
-                resolutionScaleComboBox.Foreground = new SolidColorBrush(Color.FromRgb(0, 0, 0));
-                colourModeLabel.Foreground = new SolidColorBrush(Color.FromRgb(0, 0, 0));
-                resolutionScaleLabel.Foreground = new SolidColorBrush(Color.FromRgb(0, 0, 0));
-                graphicsAdapterLabel.Foreground = new SolidColorBrush(Color.FromRgb(0, 0, 0));
-                browseImagesButton.Foreground = new SolidColorBrush(Color.FromRgb(0, 0, 0));
-                clearImagesButton.Foreground = new SolidColorBrush(Color.FromRgb(0, 0, 0));
-                darkModeCheckBox.Foreground = new SolidColorBrush(Color.FromRgb(0, 0, 0));
-                forceModeCheckBox.Foreground = new SolidColorBrush(Color.FromRgb(0, 0, 0));
-                outputFolderModeCheckBox.Foreground = new SolidColorBrush(Color.FromRgb(0, 0, 0));
-                image3L.Foreground = new SolidColorBrush(Color.FromRgb(0, 0, 0));
-            }
-
-            if (Properties.Settings.Default == null)
-                return;
-
-            Properties.Settings.Default.Save();
-        }
-
         // Checks if the app required for up-ressing is present.
         bool DetectApp()
         {
             if (!File.Exists("C:/Program Files/NVIDIA Corporation/NVIDIA NvDLISR/nvdlisrwrapper.exe"))
                 return false;
-            else
-                return true;
+
+            return true;
         }
 
         // Returns the most suitable graphics adapter in the system whiles also displaying to the user what graphics adapter they have.
@@ -228,18 +180,18 @@ namespace NVIDIA_Ansel_AI_Up_Res
 
             if (graphicsAdapter.SupportLevel == SupportLevel.Full)
             {
-                graphicsAdapterLabel.Content = $"Display Adapter: {graphicsAdapterName} (Full Support)";
-                graphicsAdapterLabel.ToolTip = $"Display Adapter: {graphicsAdapter.Name} (Full Support)";
+                graphicsAdapterLabel.Text = $"{graphicsAdapterName} (Full Support)";
+                graphicsAdapterLabel.ToolTip = $"{graphicsAdapter.Name} (Full Support)";
             }
             else if (graphicsAdapter.SupportLevel == SupportLevel.Partial)
             {
-                graphicsAdapterLabel.Content = $"Display Adapter: {graphicsAdapterName} (Partial Support)";
-                graphicsAdapterLabel.ToolTip = $"Display Adapter: {graphicsAdapter.Name} (Partial Support)";
+                graphicsAdapterLabel.Text = $"{graphicsAdapterName} (Partial Support)";
+                graphicsAdapterLabel.ToolTip = $"{graphicsAdapter.Name} (Partial Support)";
             }
             else
             {
-                graphicsAdapterLabel.Content = $"Display Adapter: {graphicsAdapterName} (No Support)";
-                graphicsAdapterLabel.ToolTip = $"Display Adapter: {graphicsAdapter.Name} (No Support)";
+                graphicsAdapterLabel.Text = $"{graphicsAdapterName} (No Support)";
+                graphicsAdapterLabel.ToolTip = $"{graphicsAdapter.Name} (No Support)";
             }
 
             return graphicsAdapter;
@@ -312,11 +264,6 @@ namespace NVIDIA_Ansel_AI_Up_Res
             return str;
         }
 
-        private void DarkModeCheckBox_Click(object sender, RoutedEventArgs e)
-        {
-            ChangeColourScheme((bool)darkModeCheckBox.IsChecked);
-        }
-
         private void ForceModeCheckBox_Click(object sender, RoutedEventArgs e)
         {
             forceMode = (bool)forceModeCheckBox.IsChecked;
@@ -387,6 +334,15 @@ namespace NVIDIA_Ansel_AI_Up_Res
         // Processes the selected images into the NVIDIA Ansel AI Up-Res app in a multithreaded way.
         async Task ProcessImage(string time, string resolution, string colourMode, IProgress<int> progress)
         {
+            string tempDirectoryName = string.Empty;
+
+            // If output folder mode is on, it will create a new folder and use it as its directory.
+            if (outputFolderMode)
+            {
+                tempDirectoryName = Path.Combine(Path.GetDirectoryName(imagePaths[0]), $"Enhanced Output {time}");
+                Directory.CreateDirectory(tempDirectoryName);
+            }
+
             await Task.Run(() =>
             {
                 // Divides the task into many parallel tasks (multithreading).
@@ -413,14 +369,7 @@ namespace NVIDIA_Ansel_AI_Up_Res
 
                     try
                     {
-                        // If output folder mode is on, it will create a new folder and use it as its directory.
-                        string tempDirectoryName;
-                        if (outputFolderMode)
-                        {
-                            tempDirectoryName = Path.Combine(directoryName, $"Up-Res Output {time}");
-                            Directory.CreateDirectory(tempDirectoryName);
-                        }
-                        else
+                        if (!outputFolderMode)
                             tempDirectoryName = directoryName;
 
                         // Gives the correct colour mode labelling.
