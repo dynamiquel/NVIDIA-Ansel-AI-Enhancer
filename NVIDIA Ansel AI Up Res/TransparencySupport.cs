@@ -37,7 +37,7 @@ namespace NVIDIA_Ansel_AI_Up_Res
             return false;
         }
 
-        public static Bitmap UpsacleWithAlpha(string upscaled_path, string ip, double resolution, Func<string, bool, string, string> startUpscale)
+        public static Bitmap UpscaleWithAlpha(string upscaled_path, string ip, double resolution, Func<string, bool, string, string> startUpscale)
         {
             Image source_img = Image.FromFile(ip);
             // Convert all image's pixel to white - preserveing only alpha values
@@ -48,7 +48,7 @@ namespace NVIDIA_Ansel_AI_Up_Res
             source_img.Dispose();
 
             // Upscale the alpha channel image (using color - as the edges looks more clean that way)
-            string alphaUpscale_command = alpha_path + " " + resolution.ToString() + " 2";
+            string alphaUpscale_command = $"{alpha_path} {resolution} 2";
             string alphaUpscale_path = startUpscale(alphaUpscale_command, false, "alpha");
             Bitmap fullImage = MergeAlphaChannel(upscaled_path, alphaUpscale_path);
 

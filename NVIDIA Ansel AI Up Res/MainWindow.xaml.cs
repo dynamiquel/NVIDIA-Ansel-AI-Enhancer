@@ -62,6 +62,7 @@ namespace NVIDIA_Ansel_AI_Up_Res
             outputFolderModeCheckBox.IsChecked = Properties.Settings.Default.OutputFolderMode;
             threadCount = Properties.Settings.Default.ThreadCount;
             firstTime = Properties.Settings.Default.FirstTime;
+            MaxSizeModeCheckBox.IsChecked = Properties.Settings.Default.ResolutionLimiter;
         }
 
         void SetupThreadComboBox()
@@ -95,14 +96,14 @@ namespace NVIDIA_Ansel_AI_Up_Res
                 forceModeCheckBox.Visibility = Visibility.Visible;
 
             // Has graphics adapter but not app (probably driver update needed).
-            if (graphicsAdapter.SupportLevel != SupportLevel.None && !DetectApp())
+            if ((graphicsAdapter.SupportLevel != SupportLevel.None) && !DetectApp())
                 MessageBox.Show("I was unable to locate 'C:/Program Files/NVIDIA Corporation/NVIDIA NvDLISR/nvdlisrwrapper.exe'. Without this app, I cannot do what I am supposed to do.\n\nIt is very likely that your Display Adapter Driver needs updating.", "Prerequisites Missing", MessageBoxButton.OK, MessageBoxImage.Error);
             // Has neither the graphics adapter nor the app (probably not NVIDIA).
             else if (graphicsAdapter.SupportLevel == SupportLevel.None && !DetectApp())
                 MessageBox.Show("An NVIDIA GeForce GTX or RTX display adapter is required and neither could not be found.", "Prerequisites Missing", MessageBoxButton.OK, MessageBoxImage.Error);
             // Has the app but not the graphics adapter (probably used to have NVIDIA but not anymore; could also be the app not recognising the graphics adapter properly).
             else if (graphicsAdapter.SupportLevel == SupportLevel.None && DetectApp())
-                MessageBox.Show("An NVIDIA GeForce GTX or RTX display adapter is required and neither could not be found.\n\nIf you feel like this is a mistake, enable 'Force Mode'.", "Prerequisites Missing", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("An NVIDIA GeForce GTX or RTX display adapter is required and neither could be found.\n\nIf you feel like this is a mistake, enable 'Force Mode'.", "Prerequisites Missing", MessageBoxButton.OK, MessageBoxImage.Error);
 
             UpdateOptions();
 
@@ -121,9 +122,10 @@ namespace NVIDIA_Ansel_AI_Up_Res
                 startButton.IsEnabled = false;
                 browseImagesButton.IsEnabled = false;
                 clearImagesButton.IsEnabled = false;
-                forceModeCheckBox.IsEnabled = false;
+                forceModeCheckBox.IsEnabled = true;
                 threadsComboBox.IsEnabled = false;
                 outputFolderModeCheckBox.IsEnabled = false;
+                MaxSizeModeCheckBox.IsEnabled = false;
             }
             // If partial support
             else if (supportLevel == SupportLevel.Partial)
@@ -138,6 +140,7 @@ namespace NVIDIA_Ansel_AI_Up_Res
                 forceModeCheckBox.IsEnabled = true;
                 threadsComboBox.IsEnabled = true;
                 outputFolderModeCheckBox.IsEnabled = true;
+                MaxSizeModeCheckBox.IsEnabled = true;
             }
             // If full support or force mode
             if (supportLevel == SupportLevel.Full || forceMode)
@@ -153,6 +156,7 @@ namespace NVIDIA_Ansel_AI_Up_Res
                 forceModeCheckBox.IsEnabled = true;
                 threadsComboBox.IsEnabled = true;
                 outputFolderModeCheckBox.IsEnabled = true;
+                MaxSizeModeCheckBox.IsEnabled = true;
             }
 
             SetupThreadComboBox();
@@ -216,7 +220,7 @@ namespace NVIDIA_Ansel_AI_Up_Res
             // If no graphics adapters could be found...
             if (graphicsAdapters.Count < 1)
             {
-                MessageBox.Show("For some unknown reason, your display adapter could not be found.\n\nPerhaps you have some security program blocking me access?\n\nIf you feel like this is a mistake, press 'F' to enter Force Mode.", "Display adapter not found", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("For some unknown reason, your display adapter could not be found.\n\nPerhaps you have some security program blocking me access?\n\nIf you feel like this is a mistake, enable 'Force Mode'.", "Display adapter not found", MessageBoxButton.OK, MessageBoxImage.Error);
                 return new GraphicsAdapter("N/A");
             }
 
@@ -233,7 +237,7 @@ namespace NVIDIA_Ansel_AI_Up_Res
             }
 
             // Orders the graphics adapters by support level (first graphics adapter should be most suitable).
-            graphicsAdapters.OrderBy(o => o.SupportLevel).ToList();
+            graphicsAdapters.OrderBy(o => o.SupportLevel).Reverse().ToList();
 
             // Returns the most suitable graphics adapter.
             return graphicsAdapters[0];
@@ -243,11 +247,6 @@ namespace NVIDIA_Ansel_AI_Up_Res
         {
             List<string> str = new List<string>();
             str.Add("rtx");
-            str.Add("1640");
-            str.Add("1650");
-            str.Add("1660");
-            str.Add("1670");
-            str.Add("1680");
 
             return str;
         }
@@ -262,6 +261,11 @@ namespace NVIDIA_Ansel_AI_Up_Res
             str.Add("1070");
             str.Add("1080");
             str.Add("titan");
+            str.Add("1640");
+            str.Add("1650");
+            str.Add("1660");
+            str.Add("1670");
+            str.Add("1680");
 
             return str;
         }
@@ -295,9 +299,9 @@ namespace NVIDIA_Ansel_AI_Up_Res
             }
 
             string time = DateTime.Now.ToString("yyyy MM dd HH mm ss");
-            double resolution = 2 + resolutionScaleComboBox.SelectedIndex * 2;
+            int resolutionFactor = (int)Math.Pow(2, resolutionScaleComboBox.SelectedIndex + 1);
             string colourMode = (colourModeComboBox.SelectedItem == "Colour") ? "2" : "1";
-            bool limiSize = this.MaxSizeModeCheckBox.IsChecked == true;
+            bool limitSize = this.MaxSizeModeCheckBox.IsChecked == true;
 
             // Reset
             tasksCompleted = 0;
@@ -317,11 +321,11 @@ namespace NVIDIA_Ansel_AI_Up_Res
                 startButton.Content = $"Processing... ({progressValue++}/{imagePaths.Count})";
             });
 
-            await Task.Run(() => ProcessImage(time, resolution, colourMode, limiSize, progress));
+            await Task.Run(() => ProcessImage(time, resolutionFactor, colourMode, limitSize, progress));
 
             // Activates user input
             startButton.IsEnabled = true;
-            startButton.Content = "Res Up";
+            startButton.Content = "Enhance";
             browseImagesButton.IsEnabled = true;
             clearImagesButton.IsEnabled = true;
             resolutionScaleComboBox.IsEnabled = true;
@@ -329,13 +333,13 @@ namespace NVIDIA_Ansel_AI_Up_Res
 
             // If no images failed, show a success image.
             if (failedImages <= 0)
-                MessageBox.Show($"All images have successfully up-ressed!", "Process complete", MessageBoxButton.OK, MessageBoxImage.Asterisk);
+                MessageBox.Show($"All images have enhanced!", "Process complete", MessageBoxButton.OK, MessageBoxImage.Asterisk);
             else
-                MessageBox.Show($"{failedImages} images were not successfully up-ressed!", "Process complete", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show($"{failedImages} images failed to enhance!", "Process complete", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
 
         // Processes the selected images into the NVIDIA Ansel AI Up-Res app in a multithreaded way.
-        async Task ProcessImage(string time, double resolution, string colourMode, bool limitSize, IProgress<int> progress)
+        async Task ProcessImage(string time, int defaultResolutionFactor, string colourMode, bool limitSize, IProgress<int> progress)
         {
             string tempDirectoryName = string.Empty;
 
@@ -353,25 +357,45 @@ namespace NVIDIA_Ansel_AI_Up_Res
                 {
                     // The user selected thread count becomes the max possible threads the following tasks will use at once.
                     MaxDegreeOfParallelism = threadCount
-                }, (ip) => //e.g. ip = image path
+                }, (sourceImagePath) =>
                 {
-                    string withoutExtension = Path.GetFileNameWithoutExtension(ip);
-                    string directoryName = Path.GetDirectoryName(ip);
-                    string extension = Path.GetExtension(ip);
-                    double current_resolution = resolution + 0;//copy of resolution(in case temp change to res is needed)
-                    Image source_img = Image.FromFile(ip);
-                    bool isTransparentImage = TransparencySupport.HasTransparency(source_img);
+                    string withoutExtension = Path.GetFileNameWithoutExtension(sourceImagePath);
+                    string directoryName = Path.GetDirectoryName(sourceImagePath);
+                    string extension = Path.GetExtension(sourceImagePath);
+                    int currentResolutionFactor = defaultResolutionFactor; // Copy of resolution (in case temp change to res is needed)
+                    Image sourceImage = Image.FromFile(sourceImagePath);
+                    bool isTransparentImage = TransparencySupport.HasTransparency(sourceImage);
 
-                    // Checks if image height/width will overgrow (8000x8000) which is well.. BIG - modifyes resolution factor
-                    // with the ability to ignore it
+                    // Checks if image height/width will overgrow (8000x8000) which is well.. BIG - modifies resolution factor
+                    // with the ability to ignore it.
                     if (limitSize)
                     {
-                        int max_Upscale_Size = (int)(Math.Max(source_img.Width, source_img.Height) * resolution);
-                        if (max_Upscale_Size >= 7999)
-                            //calc new resolution factor to max out to be 8000px
-                            current_resolution = Math.Floor(resolution / ((double)max_Upscale_Size / 7999));
+                        int largestUpscaledDimension = (Math.Max(sourceImage.Width, sourceImage.Height) * defaultResolutionFactor);
+
+                        // Calculate new resolution factor to max out to be 8000px.
+                        if (largestUpscaledDimension >= 8000)
+                        {
+                            currentResolutionFactor = (int)Math.Floor(defaultResolutionFactor / (largestUpscaledDimension / 8000d));
+
+                            // Floors the new resolution factor down to the closest power of 2.
+                            currentResolutionFactor = (int)Math.Pow(2, (int)Math.Log(currentResolutionFactor, 2));
+                            MessageBox.Show(currentResolutionFactor.ToString());
+                        }
                     }
-                    source_img.Dispose();
+                    sourceImage.Dispose();
+
+                    // Resolution factor is lower than what the upscaler than handle.
+                    if (currentResolutionFactor < 2)
+                    {
+                        failedImages++;
+                        tasksCompleted++;
+
+                        // Updates the program's progress to the UI.
+                        if (progress != null)
+                            progress.Report(tasksCompleted);
+
+                        return;
+                    }
 
                     if (!outputFolderMode)
                         tempDirectoryName = directoryName;
@@ -386,52 +410,82 @@ namespace NVIDIA_Ansel_AI_Up_Res
                     Func<string, bool, string, string> startUpscale = delegate (string args, bool isMove, string customName)
                      {
                          // Starts the NVIDIA Ansel AI Up-Res app and insert the selected image into it.
-                         Process process = new Process();
-                         process.StartInfo.FileName = "C:/Program Files/NVIDIA Corporation/NVIDIA NvDLISR/nvdlisrwrapper.exe";
-                         process.StartInfo.Arguments = args;
-                         process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                         process.Start();
-                         process.WaitForExit();
+                         using (Process process = new Process())
+                         {
+                             process.StartInfo.FileName = "C:/Program Files/NVIDIA Corporation/NVIDIA NvDLISR/nvdlisrwrapper.exe";
+                             process.StartInfo.Arguments = args;
+                             process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                             process.Start();
+                             process.WaitForExit();
+                         }
 
                          try
                          {
-                             string defaultPath = directoryName + "/" + withoutExtension;
-                             string newPath = $"{tempDirectoryName}/{withoutExtension}_{colourModeStr}x{current_resolution}{extension}";
+                             // Dynamiquel: "Not sure this is an ideal place for this but whatever." Credit: OlympicAngel.
+                             string defaultPath = Path.Combine(directoryName, withoutExtension);
+                             string newPath = $"{defaultPath}_{colourModeStr}_x{currentResolutionFactor * 2}{extension}";
 
                              if (!isMove)
                              {
-                                 if (File.Exists(defaultPath + customName))
-                                     File.Delete(defaultPath + customName);
-                                 File.Move(defaultPath, defaultPath + customName);
-                                 return defaultPath + customName;
+                                 string customPath = $"{defaultPath}_{customName}";
 
+                                 if (File.Exists(customPath))
+                                     File.Delete(customPath);
+
+                                 File.Move(defaultPath, customPath);
+
+                                 return customPath;
                              }
 
                              if (File.Exists(newPath))
                                  File.Delete(newPath);
+
                              File.Move(defaultPath, newPath);
+
                              return newPath;
                          }
                          catch (Exception ex)
                          {
                              failedImages++;
-                             MessageBox.Show(ex.ToString(), "An error has occured!", MessageBoxButton.OK, MessageBoxImage.Hand);
-                             return "";
+
+                             MessageBox.Show($"This could either be due to NVIDIA's API memory limitations (try a lower resolution) or something to do with file write permissions.\n\n{ex}", 
+                                 "An error has occured!", MessageBoxButton.OK, MessageBoxImage.Hand);
+
+                                return "";
                          }
                      };
+
                     // Creates the command needed to put into the NVIDIA app. 'url 2/4 1/2'
-                    string command = ip + " " + current_resolution.ToString() + " " + colourMode;
+                    string command = $"{sourceImagePath} {currentResolutionFactor} {colourMode}";
+
                     // Preform the normal upscale as normal (if img has transparency dont yet move it to user's location)
-                    string upscaled_path = startUpscale(command, !isTransparentImage, "normal");
+                    string upscaledImagePath = startUpscale(command, !isTransparentImage, "normal");
+
                     if (isTransparentImage)
                     {
-                        Bitmap trans_upscaled = TransparencySupport.UpsacleWithAlpha(upscaled_path, ip, current_resolution, startUpscale);
-                        string newPath = $"{tempDirectoryName}/{withoutExtension}_trans_{colourModeStr}x{current_resolution}{extension}";
-                        trans_upscaled.Save(newPath);
-                        trans_upscaled.Dispose();
+                        Bitmap transUpscaled = null;
+
+                        try
+                        {
+                            transUpscaled = TransparencySupport.UpscaleWithAlpha(upscaledImagePath, sourceImagePath, currentResolutionFactor, startUpscale);
+                            string newPath = Path.Combine(tempDirectoryName, $"{withoutExtension}_trans_{colourModeStr}_x{currentResolutionFactor * 2}{extension}");
+                            transUpscaled.Save(newPath);
+                        }
+                        catch (Exception ex)
+                        {
+                            failedImages++;
+
+                            MessageBox.Show($"An error has occured during the transparency merge stage.\n\n{ex}", 
+                                "An error has occured!", MessageBoxButton.OK, MessageBoxImage.Hand);
+                        }
+                        finally
+                        {
+                            transUpscaled?.Dispose();
+                        }
                     }
 
                     tasksCompleted++;
+
                     // Updates the program's progress to the UI.
                     if (progress != null)
                         progress.Report(tasksCompleted);
@@ -568,6 +622,15 @@ namespace NVIDIA_Ansel_AI_Up_Res
                 return;
 
             Properties.Settings.Default.ThreadCount = threadCount;
+            Properties.Settings.Default.Save();
+        }
+
+        private void MaxSizeModeCheckBox_Click(object sender, RoutedEventArgs e)
+        {
+            if (Properties.Settings.Default == null)
+                return;
+
+            Properties.Settings.Default.ResolutionLimiter = (bool)MaxSizeModeCheckBox.IsChecked;
             Properties.Settings.Default.Save();
         }
     }

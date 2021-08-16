@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:NVIDIA_Ansel_AI_Up_Res"
         mc:Ignorable="d"
-        Title="NVIDIA Ansel AI Enhancer" Height="268" Width="400" ResizeMode="CanMinimize" Background="WhiteSmoke" Foreground="Black">
+        Title="NVIDIA Ansel AI Enhancer" Height="290" Width="400" ResizeMode="CanMinimize" Background="WhiteSmoke" Foreground="Black">
     <Grid Name="mainGrid" 
           Loaded="MainGrid_Loaded"
           Margin="8">
@@ -19,11 +19,11 @@
         </Grid.ColumnDefinitions>
 
         <Grid x:Name="browseGrid"
-              Width="179"
-              HorizontalAlignment="Left">
+              HorizontalAlignment="Stretch"
+              Margin="0,0,16,0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="49*"/>
-                <ColumnDefinition Width="43*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Border BorderThickness="1" BorderBrush="Black" CornerRadius="4" Grid.ColumnSpan="2"/>
             <Border Name="imageB" BorderThickness="1" BorderBrush="Black" Height="0" Width="0" HorizontalAlignment="Left" VerticalAlignment="Top" CornerRadius="4">
@@ -48,8 +48,10 @@
                     VerticalAlignment="Top"
                     Background="Transparent"
                     BorderBrush="Transparent"
-                    ToolTip="Browse for images to upscale them."
-                    Height="94" Grid.ColumnSpan="2" AllowDrop="True"/>
+                    ToolTip="Browse for images to upscale them."    
+                    Grid.ColumnSpan="2" 
+                    Height="116"
+                    AllowDrop="True"/>
 
             <Button x:Name="clearImagesButton"
                     Click="ClearImagesButton_Click"
@@ -59,26 +61,10 @@
                     BorderBrush="Transparent"
                     ToolTip="Browse for images to upscale them."
                     Height="29" Grid.ColumnSpan="2"/>
-            <Grid ToolTip="When enabled, saves all the enhanced images into their own folder (very useful when you're enhancing several images)" Grid.ColumnSpan="2" Margin="10,124,10,-24">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="79*"/>
-                    <ColumnDefinition Width="24*"/>
-                    <ColumnDefinition Width="86*"/>
-                </Grid.ColumnDefinitions>
-
-                <CheckBox x:Name="outputFolderModeCheckBox"
-                    Click="OutputFolderModeCheckBox_Click"
-                    HorizontalAlignment="Left"
-                    Margin="22,4,0,4" ToolTip="All files will be placed inside a new folder within image's folder." Grid.ColumnSpan="3" Width="115">
-                    <TextBlock Text="Output as Folder" 
-                    VerticalAlignment="Center" Grid.ColumnSpan="3" Cursor="" ToolTip="All files will be placed inside a new folder within image's folder."/>
-
-                </CheckBox>
-            </Grid>
         </Grid>
 
         <StackPanel Grid.Column="1">
-            <Grid ToolTip="2: Doubles the resolution of the image (1920x1080 -> 3840x2160)&#x0a;4: Quadruples the resolution of the image (1920x1080 -> 7680×4320)">
+            <Grid ToolTip="4: Quadruples the resolution of the image (1920x1080 -> 3840x2160)&#x0a;8: Octuples the resolution of the image (1920x1080 -> 7680×4320)">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1.2*"/>
                     <ColumnDefinition Width="*"/>
@@ -91,11 +77,9 @@
                           Grid.Column="1"
                           SelectedIndex="0"
                           HorizontalAlignment="Stretch">
-                    <ComboBoxItem Content="x2"/>
                     <ComboBoxItem Content="x4"/>
-                    <ComboBoxItem Content="x6"/>
                     <ComboBoxItem Content="x8"/>
-                    <ComboBoxItem Content="x10"/>
+                    <ComboBoxItem Content="x16"/>
                 </ComboBox>
             </Grid>
 
@@ -116,20 +100,41 @@
                 </ComboBox>
             </Grid>
 
-            <Grid ToolTip="When enabled, saves all the enhanced images into their own folder (very useful when you're enhancing several images)">
+            <Grid ToolTip="All files will be placed inside a new folder within image's folder.">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1.2*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-
-                <CheckBox x:Name="MaxSizeModeCheckBox"
+                <CheckBox x:Name="outputFolderModeCheckBox"
                           Click="OutputFolderModeCheckBox_Click"
                           HorizontalAlignment="Left"
-                          Margin="0,8,0,0" IsChecked="True" ToolTip="Limits image's width/height to max 8K">
-                    <TextBlock Text="Limit size to 8K" 
-                           
-                           VerticalAlignment="Center" ToolTip="Limits image's width/height to max 8K pixels." Grid.ColumnSpan="2"/>
+                          Margin="0,8,0,0" 
+                          Grid.ColumnSpan="3" 
+                          Width="115">
+                    <TextBlock 
+                        Text="Output as Folder" 
+                        VerticalAlignment="Center" 
+                        Grid.ColumnSpan="3" />
+
+                </CheckBox>
+            </Grid>
+
+            <Grid ToolTip="Limits the resolution of the image to 8K.">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.2*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+               
+                <CheckBox x:Name="MaxSizeModeCheckBox"
+                          Click="MaxSizeModeCheckBox_Click"
+                          HorizontalAlignment="Left"
+                          Margin="0,8,0,0" 
+                          IsChecked="True">
+                    <TextBlock 
+                        Text="Limit size to 8K" 
+                        VerticalAlignment="Center"        
+                        Grid.ColumnSpan="2"/>
                 </CheckBox>
             </Grid>
 
@@ -151,7 +156,7 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Text="Threads" 
+                <TextBlock Text="Max CPU Threads" 
                            Margin="0,0,8,0"
                            VerticalAlignment="Center"/>
                 <ComboBox Name="threadsComboBox"
