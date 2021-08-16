@@ -19,20 +19,23 @@
         </Grid.ColumnDefinitions>
 
         <Grid x:Name="browseGrid"
-              Width="100"
-              Height="100"
+              Width="179"
               HorizontalAlignment="Left">
-            <Border BorderThickness="1" BorderBrush="Black" CornerRadius="4"/>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="49*"/>
+                <ColumnDefinition Width="43*"/>
+            </Grid.ColumnDefinitions>
+            <Border BorderThickness="1" BorderBrush="Black" CornerRadius="4" Grid.ColumnSpan="2"/>
             <Border Name="imageB" BorderThickness="1" BorderBrush="Black" Height="0" Width="0" HorizontalAlignment="Left" VerticalAlignment="Top" CornerRadius="4">
                 <Image Name="image" Stretch="Fill"/>
             </Border>
-            <Border Name="image1B" BorderThickness="1" BorderBrush="Black" Height="0" Width="0" HorizontalAlignment="Right" VerticalAlignment="Top" CornerRadius="4">
+            <Border Name="image1B" BorderThickness="1" BorderBrush="Black" Height="0" Width="0" HorizontalAlignment="Right" VerticalAlignment="Top" CornerRadius="4" Grid.Column="1">
                 <Image Name="image1" Stretch="Fill"/>
             </Border>
             <Border Name="image2B" BorderThickness="1" BorderBrush="Black" Height="0" Width="0" HorizontalAlignment="Left" VerticalAlignment="Bottom" CornerRadius="4">
                 <Image Name="image2" Stretch="Fill"/>
             </Border>
-            <Border Name="image3B" BorderThickness="1" BorderBrush="Black" Height="0" Width="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" CornerRadius="4">
+            <Border Name="image3B" BorderThickness="1" BorderBrush="Black" Height="0" Width="0" HorizontalAlignment="Right" VerticalAlignment="Bottom" CornerRadius="4" Grid.Column="1">
                 <Grid Name="image3G">
                     <Image Name="image3" Stretch="Fill"/>
                     <Label Name="image3L" Content="" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="15.5" FontWeight="Bold" Visibility="Hidden"/>
@@ -46,8 +49,8 @@
                     Background="Transparent"
                     BorderBrush="Transparent"
                     ToolTip="Browse for images to upscale them."
-                    Height="80"/>
-            
+                    Height="94" Grid.ColumnSpan="2" AllowDrop="True"/>
+
             <Button x:Name="clearImagesButton"
                     Click="ClearImagesButton_Click"
                     Content="Clear"
@@ -55,7 +58,23 @@
                     Background="Transparent"
                     BorderBrush="Transparent"
                     ToolTip="Browse for images to upscale them."
-                    Height="20"/>
+                    Height="29" Grid.ColumnSpan="2"/>
+            <Grid ToolTip="When enabled, saves all the enhanced images into their own folder (very useful when you're enhancing several images)" Grid.ColumnSpan="2" Margin="10,124,10,-24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="79*"/>
+                    <ColumnDefinition Width="24*"/>
+                    <ColumnDefinition Width="86*"/>
+                </Grid.ColumnDefinitions>
+
+                <CheckBox x:Name="outputFolderModeCheckBox"
+                    Click="OutputFolderModeCheckBox_Click"
+                    HorizontalAlignment="Left"
+                    Margin="22,4,0,4" ToolTip="All files will be placed inside a new folder within image's folder." Grid.ColumnSpan="3" Width="115">
+                    <TextBlock Text="Output as Folder" 
+                    VerticalAlignment="Center" Grid.ColumnSpan="3" Cursor="" ToolTip="All files will be placed inside a new folder within image's folder."/>
+
+                </CheckBox>
+            </Grid>
         </Grid>
 
         <StackPanel Grid.Column="1">
@@ -74,6 +93,9 @@
                           HorizontalAlignment="Stretch">
                     <ComboBoxItem Content="x2"/>
                     <ComboBoxItem Content="x4"/>
+                    <ComboBoxItem Content="x6"/>
+                    <ComboBoxItem Content="x8"/>
+                    <ComboBoxItem Content="x10"/>
                 </ComboBox>
             </Grid>
 
@@ -100,14 +122,14 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Text="Output as Folder" 
-                           Margin="0,8,8,0"
-                           VerticalAlignment="Center"/>
-                <CheckBox Name="outputFolderModeCheckBox"
-                          Grid.Column="1"
+
+                <CheckBox x:Name="MaxSizeModeCheckBox"
                           Click="OutputFolderModeCheckBox_Click"
                           HorizontalAlignment="Left"
-                          Margin="0,8,0,0">
+                          Margin="0,8,0,0" IsChecked="True" ToolTip="Limits image's width/height to max 8K">
+                    <TextBlock Text="Limit size to 8K" 
+                           
+                           VerticalAlignment="Center" ToolTip="Limits image's width/height to max 8K pixels." Grid.ColumnSpan="2"/>
                 </CheckBox>
             </Grid>
 

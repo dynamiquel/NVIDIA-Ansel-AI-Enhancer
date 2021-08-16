@@ -10,6 +10,8 @@ using System.Windows.Media.Imaging;
 using System.Management;
 using System.Diagnostics;
 using Microsoft.Win32;
+using System.Drawing;
+using Image = System.Drawing.Image;
 
 namespace NVIDIA_Ansel_AI_Up_Res
 {
@@ -206,7 +208,7 @@ namespace NVIDIA_Ansel_AI_Up_Res
             List<GraphicsAdapter> graphicsAdapters = new List<GraphicsAdapter>();
 
             // Saves the name of every found graphics card in a list.
-            foreach (ManagementObject mo in searcher.Get()) 
+            foreach (ManagementObject mo in searcher.Get())
                 foreach (PropertyData property in mo.Properties)
                     if (property.Name == "Description")
                         graphicsAdapters.Add(new GraphicsAdapter(property.Value.ToString()));
@@ -293,8 +295,9 @@ namespace NVIDIA_Ansel_AI_Up_Res
             }
 
             string time = DateTime.Now.ToString("yyyy MM dd HH mm ss");
-            string resolution = resolutionScaleComboBox.SelectedIndex == 0 ? "2" : "4";
-            string colourMode = colourModeComboBox.SelectedItem == "Colour" ? "2" : "1";
+            double resolution = 2 + resolutionScaleComboBox.SelectedIndex * 2;
+            string colourMode = (colourModeComboBox.SelectedItem == "Colour") ? "2" : "1";
+            bool limiSize = this.MaxSizeModeCheckBox.IsChecked == true;
 
             // Reset
             tasksCompleted = 0;
@@ -314,7 +317,7 @@ namespace NVIDIA_Ansel_AI_Up_Res
                 startButton.Content = $"Processing... ({progressValue++}/{imagePaths.Count})";
             });
 
-            await Task.Run(() => ProcessImage(time, resolution, colourMode, progress));
+            await Task.Run(() => ProcessImage(time, resolution, colourMode, limiSize, progress));
 
             // Activates user input
             startButton.IsEnabled = true;
@@ -332,7 +335,7 @@ namespace NVIDIA_Ansel_AI_Up_Res
         }
 
         // Processes the selected images into the NVIDIA Ansel AI Up-Res app in a multithreaded way.
-        async Task ProcessImage(string time, string resolution, string colourMode, IProgress<int> progress)
+        async Task ProcessImage(string time, double resolution, string colourMode, bool limitSize, IProgress<int> progress)
         {
             string tempDirectoryName = string.Empty;
 
@@ -350,46 +353,85 @@ namespace NVIDIA_Ansel_AI_Up_Res
                 {
                     // The user selected thread count becomes the max possible threads the following tasks will use at once.
                     MaxDegreeOfParallelism = threadCount
-                }, (ip) =>
+                }, (ip) => //e.g. ip = image path
                 {
                     string withoutExtension = Path.GetFileNameWithoutExtension(ip);
                     string directoryName = Path.GetDirectoryName(ip);
                     string extension = Path.GetExtension(ip);
+                    double current_resolution = resolution + 0;//copy of resolution(in case temp change to res is needed)
+                    Image source_img = Image.FromFile(ip);
+                    bool isTransparentImage = TransparencySupport.HasTransparency(source_img);
 
-                    // Creates the command needed to put into the NVIDIA app. 'url 2/4 1/2'
-                    string command = ip + " " + resolution + " " + colourMode;
-
-                    // Starts the NVIDIA Ansel AI Up-Res app and insert the selected image into it.
-                    Process process = new Process();
-                    process.StartInfo.FileName = "C:/Program Files/NVIDIA Corporation/NVIDIA NvDLISR/nvdlisrwrapper.exe";
-                    process.StartInfo.Arguments = command;
-                    process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                    process.Start();
-                    process.WaitForExit();
-
-                    try
+                    // Checks if image height/width will overgrow (8000x8000) which is well.. BIG - modifyes resolution factor
+                    // with the ability to ignore it
+                    if (limitSize)
                     {
-                        if (!outputFolderMode)
-                            tempDirectoryName = directoryName;
-
-                        // Gives the correct colour mode labelling.
-                        string colourModeStr;
-                        if (colourMode == 1.ToString())
-                            colourModeStr = "Greyscale";
-                        else
-                            colourModeStr = "Colour";
-
-                        string newPath = $"{tempDirectoryName}/{withoutExtension}_{colourModeStr}{resolution}{extension}";
-                        File.Move(directoryName + "/" + withoutExtension, newPath);
+                        int max_Upscale_Size = (int)(Math.Max(source_img.Width, source_img.Height) * resolution);
+                        if (max_Upscale_Size >= 7999)
+                            //calc new resolution factor to max out to be 8000px
+                            current_resolution = Math.Floor(resolution / ((double)max_Upscale_Size / 7999));
                     }
-                    catch (Exception ex)
+                    source_img.Dispose();
+
+                    if (!outputFolderMode)
+                        tempDirectoryName = directoryName;
+
+                    // Gives the correct colour mode labelling.
+                    string colourModeStr;
+                    if (colourMode == 1.ToString())
+                        colourModeStr = "Greyscale";
+                    else
+                        colourModeStr = "Colour";
+
+                    Func<string, bool, string, string> startUpscale = delegate (string args, bool isMove, string customName)
+                     {
+                         // Starts the NVIDIA Ansel AI Up-Res app and insert the selected image into it.
+                         Process process = new Process();
+                         process.StartInfo.FileName = "C:/Program Files/NVIDIA Corporation/NVIDIA NvDLISR/nvdlisrwrapper.exe";
+                         process.StartInfo.Arguments = args;
+                         process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                         process.Start();
+                         process.WaitForExit();
+
+                         try
+                         {
+                             string defaultPath = directoryName + "/" + withoutExtension;
+                             string newPath = $"{tempDirectoryName}/{withoutExtension}_{colourModeStr}x{current_resolution}{extension}";
+
+                             if (!isMove)
+                             {
+                                 if (File.Exists(defaultPath + customName))
+                                     File.Delete(defaultPath + customName);
+                                 File.Move(defaultPath, defaultPath + customName);
+                                 return defaultPath + customName;
+
+                             }
+
+                             if (File.Exists(newPath))
+                                 File.Delete(newPath);
+                             File.Move(defaultPath, newPath);
+                             return newPath;
+                         }
+                         catch (Exception ex)
+                         {
+                             failedImages++;
+                             MessageBox.Show(ex.ToString(), "An error has occured!", MessageBoxButton.OK, MessageBoxImage.Hand);
+                             return "";
+                         }
+                     };
+                    // Creates the command needed to put into the NVIDIA app. 'url 2/4 1/2'
+                    string command = ip + " " + current_resolution.ToString() + " " + colourMode;
+                    // Preform the normal upscale as normal (if img has transparency dont yet move it to user's location)
+                    string upscaled_path = startUpscale(command, !isTransparentImage, "normal");
+                    if (isTransparentImage)
                     {
-                        failedImages++;
-                        MessageBox.Show(ex.ToString(), "An error has occured!", MessageBoxButton.OK, MessageBoxImage.Hand);
+                        Bitmap trans_upscaled = TransparencySupport.UpsacleWithAlpha(upscaled_path, ip, current_resolution, startUpscale);
+                        string newPath = $"{tempDirectoryName}/{withoutExtension}_trans_{colourModeStr}x{current_resolution}{extension}";
+                        trans_upscaled.Save(newPath);
+                        trans_upscaled.Dispose();
                     }
 
                     tasksCompleted++;
-
                     // Updates the program's progress to the UI.
                     if (progress != null)
                         progress.Report(tasksCompleted);
@@ -416,7 +458,7 @@ namespace NVIDIA_Ansel_AI_Up_Res
                 if (!imagePaths.Contains(fileName))
                     imagePaths.Add(fileName);
 
-            RefreshImageGrid();  
+            RefreshImageGrid();
         }
 
         // Refreshes the image grid to ensure it alligns correctly with the image list.
