@@ -26,7 +26,7 @@ NVIDIA Ansel AI Enhancer is an app I quickly made that takes advantage of NVIDIA
 - NVIDIA Turing (20 series) or newer display adapter (for colour support)</li>
 
 ## Download
-Click [**here**](https://github.com/dynamiquel/NVIDIA-Ansel-AI-Enhancer/releases/download/v1.1/NVIDIA.Ansel.AI.Enhancer.exe) to download the latest version of the app.
+Click [**here**](https://github.com/dynamiquel/NVIDIA-Ansel-AI-Enhancer/releases/download/v1.2/NVIDIA.Ansel.AI.Enhancer.exe) to download the latest version of the app.
 
 ## Building (for developers)
 ### Prerequisites
