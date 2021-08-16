@@ -10,7 +10,7 @@ NVIDIA Ansel AI Enhancer is an app I quickly made that takes advantage of NVIDIA
 <br>
 
 <h3 align="center"> 
-    <a href="https://github.com/dynamiquel/NVIDIA-Ansel-AI-Enhancer/releases/download/v1.1/NVIDIA.Ansel.AI.Enhancer.exe">🎆 Download the latest version 🎆</a>
+    <a href="https://github.com/dynamiquel/NVIDIA-Ansel-AI-Enhancer/releases/download/v1.2/NVIDIA.Ansel.AI.Enhancer.exe">🎆 Download the latest version 🎆</a>
 </h3>
 
 <br>
