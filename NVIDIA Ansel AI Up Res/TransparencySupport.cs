@@ -1,14 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-
 
 namespace NVIDIA_Ansel_AI_Up_Res
 {
@@ -63,37 +58,51 @@ namespace NVIDIA_Ansel_AI_Up_Res
 
         private static Bitmap MergeAlphaChannel(string origin_path, string alphaChannel_path)
         {
-            Image origin_img = Image.FromFile(origin_path),
-                alphaChannel_img = Image.FromFile(alphaChannel_path);
-            Bitmap origin_bit = new Bitmap(origin_img),
-                alphaChannel_bit = new Bitmap(alphaChannel_img);
+            // Load images to memory and directly merge alpha value from grayscale into the full image.
 
-            Bitmap target = new Bitmap(origin_bit.Width, origin_bit.Height);
-            // Paints each pixel of the image.
-            // TODO: find faster method to combine "origin_img" & "alphaChannel_img"
+            // Loads full image and locks data to memory
+            Image fullImage_img = Image.FromFile(origin_path);
+            Bitmap fullImage_bit = new Bitmap(fullImage_img);
+            BitmapData fullImage_bitData = fullImage_bit.LockBits(new Rectangle(0, 0, fullImage_bit.Width, fullImage_bit.Height),
+                ImageLockMode.ReadWrite,
+                PixelFormat.Format32bppArgb);
 
-            for (int y = 0; y < origin_bit.Height; ++y)
+            // Loads alpha image and locks data to memory
+            Image alphaImage_img = Image.FromFile(alphaChannel_path);
+            Bitmap alphaImage_bit = new Bitmap(alphaImage_img);
+            BitmapData alphaImage_bitData = alphaImage_bit.LockBits(new Rectangle(0, 0, alphaImage_bit.Width, alphaImage_bit.Height),
+                ImageLockMode.ReadOnly,
+                PixelFormat.Format32bppArgb);
+
+            int Height = fullImage_bit.Height;
+            int Width = fullImage_bit.Width;
+
+            unsafe
             {
-                for (int x = 0; x < origin_bit.Width; ++x)
+                for (int y = 0; y < Height; ++y)
                 {
-                    Color OriginPixel = origin_bit.GetPixel(x,y);
-                    Color AlphaPixel = alphaChannel_bit.GetPixel(x, y);
-                    byte alpha = AlphaPixel.R;
-                    Color newPixel = Color.FromArgb(alpha,
-                        PremultiplyAlpha(OriginPixel.R, alpha,y),
-                        PremultiplyAlpha(OriginPixel.G, alpha,y),
-                        PremultiplyAlpha(OriginPixel.B, alpha,y));
-                    // Creating new pixel of the final image, RGB data from original image,
-                    // while alpha data is from "alpha" image(black/white)
-
-                    target.SetPixel(x, y, newPixel);
+                    byte* fullImage_row = (byte*)fullImage_bitData.Scan0 + (y * fullImage_bitData.Stride);
+                    byte* alphaImage_row = (byte*)alphaImage_bitData.Scan0 + (y * alphaImage_bitData.Stride);
+                    int columnOffset = 0;
+                    for (int x = 0; x < Width; ++x)
+                    {
+                        // Change alpha value of a pixel within fullImage_bitData to the R value of the same location pixel in alphaImage_bitData
+                        // note: R value in pixel within alphaImage_bitData will be 0-255 and represnt the alpha of the image.
+                        fullImage_row[columnOffset + 3] = alphaImage_row[columnOffset + 0];
+                        columnOffset += 4;
+                    }
                 }
             }
-            origin_img.Dispose();
-            alphaChannel_img.Dispose();
-            origin_bit.Dispose();
-            alphaChannel_bit.Dispose();
-            return target;
+            // Unlocks images memory
+            fullImage_bit.UnlockBits(fullImage_bitData);
+            alphaImage_bit.UnlockBits(alphaImage_bitData);
+
+            // Cleanup
+            fullImage_img.Dispose();
+            alphaImage_bit.Dispose();
+            alphaImage_img.Dispose();
+
+            return fullImage_bit;
         }
 
         private static Bitmap ToAlphaChannel(Bitmap Image)
@@ -127,9 +136,8 @@ namespace NVIDIA_Ansel_AI_Up_Res
 
         private static byte PremultiplyAlpha(byte source, byte alpha,int y)
         {
-            if (y > 400)
-                return source;
             return (byte)((float)(source) * (float)(alpha) / (float)(byte.MaxValue) + 0.5f);
         }
+   
     }
 }
