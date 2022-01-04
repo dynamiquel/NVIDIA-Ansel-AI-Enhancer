@@ -35,3 +35,7 @@ Click [**here**](https://github.com/dynamiquel/NVIDIA-Ansel-AI-Enhancer/releases
 </ul>
 
 Open the **sln** file with Visual Studio 2019. Build > Build Solution.
+
+## How good is it?
+Ansel AI is not that great but is a simple and fast way of upscaling your images for free. If you want to take upscaling more seriously, then I suggest you to look into [**ESRGN**](https://upscale.wiki/wiki/Main_Page). It does take more time and is more technical to setup and use, however, there is a [YouTube tutorial](https://www.youtube.com/watch?v=w4Hb7tyDsWE) that does go through this process for you.
+ESRGAN does not require an Nvidia GPU but it does work better on any Nvidia GPU (don't need an RTX card).
